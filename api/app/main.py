@@ -18,7 +18,10 @@ def health():
 
 @app.post("/items/<key>")
 def save_item(key):
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return jsonify(error="cuerpo JSON inválido; envía {\"value\": ...}",
+                       recibido=request.get_data(as_text=True)), 400
     try:
         resp = requests.post(f"{STORE_URL}/data/{key}", json=body, timeout=3)
     except requests.RequestException as exc:

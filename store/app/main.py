@@ -15,7 +15,10 @@ def health():
 
 @app.post("/data/<key>")
 def save(key):
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        return jsonify(error="cuerpo JSON inválido; envía {\"value\": ...}",
+                       recibido=request.get_data(as_text=True)), 400
     if "value" not in body:
         return jsonify(error="falta 'value'"), 400
     _data[key] = body["value"]

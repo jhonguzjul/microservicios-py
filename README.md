@@ -25,10 +25,28 @@ docker compose up --build
 
 ## Probar la ida y vuelta (api → store → api)
 
+Linux / macOS / Git Bash:
+
 ```bash
 curl -X POST http://localhost:5000/items/saludo -H "Content-Type: application/json" -d '{"value":"hola"}'
 curl http://localhost:5000/items/saludo
 ```
+
+Windows PowerShell (`curl` es un alias de `Invoke-WebRequest` y PowerShell 5.1 quita las
+comillas del JSON, por eso se usa `Invoke-RestMethod`):
+
+```powershell
+Invoke-RestMethod -Method Post -Uri http://localhost:5000/items/saludo -ContentType 'application/json' -Body '{"value":"hola"}'
+Invoke-RestMethod http://localhost:5000/items/saludo
+```
+
+O con `curl.exe` escapando las comillas:
+
+```powershell
+curl.exe -X POST http://localhost:5000/items/saludo -H "Content-Type: application/json" -d '{\"value\":\"hola\"}'
+```
+
+> Leer una clave antes de guardarla devuelve `404` (es lo esperado).
 
 ## Pruebas
 
