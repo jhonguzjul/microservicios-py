@@ -2,19 +2,34 @@ services:
   api:
     build: ./api
     container_name: api
+    environment:
+      API_PORT: "5000"
+      STORE_URL: http://store:6000   # nombre del servicio, no localhost ni IP
     ports:
       - "5000:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    depends_on:
+      store:
+        condition: service_healthy
     networks:
       - backend
 
-  worker:
-    build: ./worker
-    container_name: worker
+  store:
+    build: ./store
+    container_name: store
     environment:
-      API_URL: http://api:5000
-      WORKER_INTERVAL: "5"
-    depends_on:
-      - api
+      STORE_PORT: "6000"
+    expose:
+      - "6000"                       # solo accesible dentro de la red backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6000/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - backend
 

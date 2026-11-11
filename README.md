@@ -1,14 +1,15 @@
 # microservicios-py
 
-Proyecto base en Python con dos contenedores que se comunican por una red de Docker.
+Proyecto base en Python con dos contenedores que se comunican por la red `backend` de Docker
+usando el **nombre del servicio** (`http://store:6000`), nunca `localhost` ni una IP fija.
 
 ```
 microservicios-py/
-├── api/              # Servicio Flask (puerto 5000)
-│   ├── app/main.py
+├── api/              # Contenedor 1: Flask (puerto 5000, publicado al host)
+│   ├── app/main.py   #   reenvía /items/<clave> a http://store:6000
 │   ├── Dockerfile
 │   └── requirements.txt
-├── worker/           # Cliente que llama a la API cada N segundos
+├── store/            # Contenedor 2: almacén clave/valor (puerto 6000, solo red interna)
 │   ├── app/main.py
 │   ├── Dockerfile
 │   └── requirements.txt
@@ -22,17 +23,17 @@ microservicios-py/
 docker compose up --build
 ```
 
-- La API queda en http://localhost:5000/health
-- El worker llama a `http://api:5000` (nombre del servicio en la red `backend`) y muestra las respuestas en sus logs:
+## Probar la ida y vuelta (api → store → api)
 
 ```bash
-docker compose logs -f worker
+curl -X POST http://localhost:5000/items/saludo -H "Content-Type: application/json" -d '{"value":"hola"}'
+curl http://localhost:5000/items/saludo
 ```
 
 ## Pruebas
 
 ```bash
-pip install flask pytest
+pip install flask requests pytest
 pytest
 ```
 

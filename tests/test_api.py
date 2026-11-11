@@ -1,19 +1,25 @@
-import sys
+import importlib.util
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "api"))
-
-from app.main import app  # noqa: E402
+ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_health():
-    client = app.test_client()
-    resp = client.get("/health")
+def _load(service):
+    spec = importlib.util.spec_from_file_location(f"{service}_main", ROOT / service / "app" / "main.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.app
+
+
+def test_api_health():
+    resp = _load("api").test_client().get("/health")
     assert resp.status_code == 200
-    assert resp.get_json()["status"] == "ok"
+    assert resp.get_json()["service"] == "api"
 
 
-def test_echo():
-    client = app.test_client()
-    resp = client.post("/echo", json={"hola": "mundo"})
-    assert resp.get_json()["received"] == {"hola": "mundo"}
+def test_store_save_and_read():
+    client = _load("store").test_client()
+    assert client.post("/data/saludo", json={"value": "hola"}).status_code == 201
+    resp = client.get("/data/saludo")
+    assert resp.get_json()["value"] == "hola"
+    assert client.get("/data/nada").status_code == 404
