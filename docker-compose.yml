@@ -1,0 +1,23 @@
+services:
+  api:
+    build: ./api
+    container_name: api
+    ports:
+      - "5000:5000"
+    networks:
+      - backend
+
+  worker:
+    build: ./worker
+    container_name: worker
+    environment:
+      API_URL: http://api:5000
+      WORKER_INTERVAL: "5"
+    depends_on:
+      - api
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
