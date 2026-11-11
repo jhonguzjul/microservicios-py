@@ -1,11 +1,11 @@
-"""Servicio store (contenedor 2): guarda y devuelve datos clave/valor en memoria."""
+"""Servicio store (contenedor 2): guarda en memoria lo que recibe y lo lista."""
 import os
 import socket
 
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
-_data = {}
+_records = []
 
 
 @app.get("/health")
@@ -13,23 +13,19 @@ def health():
     return jsonify(status="ok", service="store", host=socket.gethostname())
 
 
-@app.post("/data/<key>")
-def save(key):
+@app.post("/records")
+def save():
     body = request.get_json(silent=True)
-    if not isinstance(body, dict):
-        return jsonify(error="cuerpo JSON inválido; envía {\"value\": ...}",
-                       recibido=request.get_data(as_text=True)), 400
-    if "value" not in body:
-        return jsonify(error="falta 'value'"), 400
-    _data[key] = body["value"]
-    return jsonify(key=key, value=_data[key], saved=True), 201
+    if body is None:
+        return jsonify(error="cuerpo JSON inválido"), 400
+    record = {"id": len(_records) + 1, "data": body}
+    _records.append(record)
+    return jsonify(saved=True, record=record), 201
 
 
-@app.get("/data/<key>")
-def read(key):
-    if key not in _data:
-        return jsonify(error=f"clave '{key}' no encontrada"), 404
-    return jsonify(key=key, value=_data[key], host=socket.gethostname())
+@app.get("/records")
+def list_all():
+    return jsonify(total=len(_records), records=_records)
 
 
 if __name__ == "__main__":

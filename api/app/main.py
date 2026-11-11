@@ -16,26 +16,26 @@ def health():
     return jsonify(status="ok", service="api", host=socket.gethostname())
 
 
-@app.post("/items/<key>")
-def save_item(key):
+@app.post("/action/save")
+def save():
     body = request.get_json(silent=True)
-    if not isinstance(body, dict):
-        return jsonify(error="cuerpo JSON inválido; envía {\"value\": ...}",
+    if body is None:
+        return jsonify(error="cuerpo JSON inválido",
                        recibido=request.get_data(as_text=True)), 400
     try:
-        resp = requests.post(f"{STORE_URL}/data/{key}", json=body, timeout=3)
+        resp = requests.post(f"{STORE_URL}/records", json=body, timeout=3)
     except requests.RequestException as exc:
         return jsonify(error=f"store no disponible: {exc}"), 502
-    return jsonify(via=STORE_URL, store=resp.json()), resp.status_code
+    return jsonify(resp.json()), resp.status_code
 
 
-@app.get("/items/<key>")
-def read_item(key):
+@app.get("/action/list")
+def list_all():
     try:
-        resp = requests.get(f"{STORE_URL}/data/{key}", timeout=3)
+        resp = requests.get(f"{STORE_URL}/records", timeout=3)
     except requests.RequestException as exc:
         return jsonify(error=f"store no disponible: {exc}"), 502
-    return jsonify(via=STORE_URL, store=resp.json()), resp.status_code
+    return jsonify(resp.json()), resp.status_code
 
 
 if __name__ == "__main__":

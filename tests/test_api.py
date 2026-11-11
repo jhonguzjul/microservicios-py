@@ -17,9 +17,15 @@ def test_api_health():
     assert resp.get_json()["service"] == "api"
 
 
-def test_store_save_and_read():
+def test_api_rechaza_json_invalido():
+    resp = _load("api").test_client().post("/action/save", data="{malo", content_type="application/json")
+    assert resp.status_code == 400
+
+
+def test_store_save_and_list():
     client = _load("store").test_client()
-    assert client.post("/data/saludo", json={"value": "hola"}).status_code == 201
-    resp = client.get("/data/saludo")
-    assert resp.get_json()["value"] == "hola"
-    assert client.get("/data/nada").status_code == 404
+    assert client.post("/records", json={"nombre": "Ana"}).status_code == 201
+    assert client.post("/records", json={"nombre": "Luis"}).status_code == 201
+    data = client.get("/records").get_json()
+    assert data["total"] == 2
+    assert [r["data"]["nombre"] for r in data["records"]] == ["Ana", "Luis"]

@@ -47,9 +47,9 @@ jobs:
 
       - name: Round trip api -> store
         run: |
-          curl -fsS -X POST http://localhost:5000/items/ci \
-               -H "Content-Type: application/json" -d '{"value":"ok"}'
-          curl -fsS http://localhost:5000/items/ci | grep '"value":"ok"'
+          curl -fsS -X POST http://localhost:5000/action/save \
+               -H "Content-Type: application/json" -d '{"ci":"ok"}'
+          curl -fsS http://localhost:5000/action/list | grep '"ci":"ok"'
 
       - name: Logs
         if: always()
