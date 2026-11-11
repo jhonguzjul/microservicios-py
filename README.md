@@ -1,30 +1,11 @@
 # microservicios-py
 
-Proyecto base en Python con dos contenedores que se comunican por la red `backend` de Docker
-usando el **nombre del servicio** (`http://store:6000`), nunca `localhost` ni una IP fija.
+Dos servicios Flask en Docker. `api` reenvía las peticiones a `store` por la red `backend` usando `http://store:6000`.
 
-```
-microservicios-py/
-├── api/              # Contenedor 1: Flask (puerto 5000, publicado al host)
-│   ├── app/main.py   #   /action/save y /action/list -> reenvía a http://store:6000
-│   ├── Dockerfile
-│   └── requirements.txt
-├── store/            # Contenedor 2: guarda los registros en memoria (puerto 6000, solo red interna)
-│   ├── app/main.py
-│   ├── Dockerfile
-│   └── requirements.txt
-├── tests/            # Pruebas con pytest
-├── .github/workflows # CI: construye las imágenes en cada push a main
-└── docker-compose.yml
-```
-
-## Endpoints (api, puerto 5000)
-
-| Método | Ruta | Qué hace |
+| Servicio | Puerto | Rutas |
 |---|---|---|
-| `POST` | `/action/save` | Guarda el JSON que se envía en el body |
-| `GET` | `/action/list` | Lista todo lo guardado |
-| `GET` | `/health` | Estado de la api |
+| api | 5000 (publicado) | `POST /action/save`, `GET /action/list` |
+| store | 6000 (solo red interna) | `POST /records`, `GET /records` |
 
 ## Ejecutar
 
@@ -34,32 +15,21 @@ docker compose up --build
 
 ## Probar
 
-Linux / macOS / Git Bash:
-
 ```bash
-curl -X POST http://localhost:5000/action/save -H "Content-Type: application/json" -d '{"nombre":"Ana","edad":30}'
+curl -X POST http://localhost:5000/action/save -H "Content-Type: application/json" -d '{"nombre":"Ana"}'
 curl http://localhost:5000/action/list
 ```
 
-Windows PowerShell (`curl` es un alias de `Invoke-WebRequest` y PowerShell 5.1 quita las
-comillas del JSON, por eso se usa `Invoke-RestMethod`):
+PowerShell:
 
 ```powershell
-Invoke-RestMethod -Method Post -Uri http://localhost:5000/action/save -ContentType 'application/json' -Body '{"nombre":"Ana","edad":30}'
-Invoke-RestMethod http://localhost:5000/action/list | ConvertTo-Json -Depth 5
+Invoke-RestMethod -Method Post -Uri http://localhost:5000/action/save -ContentType 'application/json' -Body '{"nombre":"Ana"}'
+Invoke-RestMethod http://localhost:5000/action/list
 ```
 
-> Los datos están en memoria: se pierden al reiniciar el contenedor `store`.
-
-## Pruebas
+## Tests
 
 ```bash
 pip install flask requests pytest
 pytest
 ```
-
-## Ramas
-
-- `main`: producción
-- `dev`: desarrollo
-- `qa`: pruebas

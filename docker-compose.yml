@@ -4,13 +4,12 @@ services:
     container_name: api
     environment:
       API_PORT: "5000"
-      STORE_URL: http://store:6000   # nombre del servicio, no localhost ni IP
+      STORE_URL: http://store:6000
     ports:
       - "5000:5000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
       interval: 5s
-      timeout: 3s
       retries: 5
     depends_on:
       store:
@@ -24,15 +23,13 @@ services:
     environment:
       STORE_PORT: "6000"
     expose:
-      - "6000"                       # solo accesible dentro de la red backend
+      - "6000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:6000/health')"]
       interval: 5s
-      timeout: 3s
       retries: 5
     networks:
       - backend
 
 networks:
   backend:
-    driver: bridge
